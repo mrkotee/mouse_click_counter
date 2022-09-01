@@ -1,42 +1,56 @@
+import os
+import subprocess
 import time
 from datetime import datetime as dt
 
 from pynput.mouse import Listener
-from tkinter import messagebox
+# from tkinter import messagebox
+
 
 # messagebox.showwarning('warn', 'sdf')
 # messagebox.showerror("asdfs", "text")
 # messagebox.showinfo("title", 'message')
 
-start_time = dt.now().replace(microsecond=0)
-glob_count = 0
-day_count = 0
-day_now = dt.now().day
-today_showed = False
 
+class ClickCounter:
 
-def on_click(x, y, button, pressed):
-    if not pressed:
-        return
-    global glob_count
-    glob_count += 1
-    global day_count
-    day_count += 1
-    # print(f"Mouse clicked {x=} {y=} {button=} {pressed=} {count}")
+    def __init__(self):
+        self.start_time = dt.now().replace(microsecond=0)
+        self.glob_count = 0
+        self.day_count = 0
+        self.day_now = dt.now().day
+        self.today_showed = False
+        self.listener = Listener(on_click=self.on_click)
+        self.listener.start()
 
+    def on_click(self, x, y, button, pressed):
+        if not pressed:
+            return
+        self.glob_count += 1
+        self.day_count += 1
+        # print(f"Mouse clicked {x=} {y=} {button=} {pressed=} {count}")
 
-listener = Listener(on_click=on_click)
-listener.start()
-
-try:
-    while True:
-        time.sleep(1)
-        if day_now != dt.now().day:
-            day_count = 0
-            today_showed = False
-            day_now = dt.now().day
-        if day_count >= 500:
-            messagebox.showinfo("Click counter", message=f"Поздравляю!\nСегодня ты кликнул уже {day_count} раз\n"
-                                                         f"И {glob_count} раз начиная с {start_time.isoformat()}")
-except KeyboardInterrupt:
-    listener.stop()
+    def run(self):
+        try:
+            while True:
+                time.sleep(1)
+                if self.day_now != dt.now().day:
+                    self.day_count = 0
+                    self.today_showed = False
+                    self.day_now = dt.now().day
+                if self.day_count >= 3 and not self.today_showed:
+                    message = f"Поздравляю!\nСегодня ты кликнул уже {self.day_count} раз\n"\
+                            f"И {self.glob_count} раз начиная с {self.start_time.isoformat()}"
+                    # messages = []
+                    # for msg in range(0, len(message), 30):
+                    #     messages.append(message[msg:msg+30])
+                    #
+                    for msg in message.split("\n")[::-1]:
+                        # subprocess.Popen(['notify-send', msg])
+                        os.system(f"""notify-send "Счетчик кликов" {msg}""")
+                        time.sleep(0.5)
+                    self.today_showed = True
+                    # messagebox.showinfo("Click counter",
+                    #                     message=message)
+        except KeyboardInterrupt:
+            self.listener.stop()
