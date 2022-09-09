@@ -20,8 +20,6 @@ class ClickCounter:
         self.day_count = 0
         self.day_now = dt.now().day
         self.today_showed = False
-        self.listener = Listener(on_click=self.on_click)
-        self.listener.start()
 
     def on_click(self, x, y, button, pressed):
         if not pressed:
@@ -32,6 +30,8 @@ class ClickCounter:
 
     def run(self):
         try:
+            self.listener = Listener(on_click=self.on_click)
+            self.listener.start()
             while True:
                 time.sleep(1)
                 if self.day_now != dt.now().day:
@@ -41,13 +41,9 @@ class ClickCounter:
                 if self.day_count >= 3 and not self.today_showed:
                     message = f"Поздравляю!\nСегодня ты кликнул уже {self.day_count} раз\n"\
                             f"И {self.glob_count} раз начиная с {self.start_time.isoformat()}"
-                    # messages = []
-                    # for msg in range(0, len(message), 30):
-                    #     messages.append(message[msg:msg+30])
-                    #
                     for msg in message.split("\n")[::-1]:
                         # subprocess.Popen(['notify-send', msg])
-                        os.system(f"""notify-send "Счетчик кликов" {msg}""")
+                        os.system(f"""notify-send "Счетчик кликов" "{msg}" """)
                         time.sleep(0.5)
                     self.today_showed = True
                     # messagebox.showinfo("Click counter",
